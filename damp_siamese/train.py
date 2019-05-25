@@ -16,9 +16,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str)
 parser.add_argument('--scenario', type=str, choices=['mono2mono', 'mix2mix', 'mono2mix'])
+parser.add_argument('--pretrained_model', type=str, default=None)
 args = parser.parse_args()
 print("model name", args.model_name)
 print("scenario", args.scenario)
+print("pretrained model path", args.pretrained_model)
 
 
 
@@ -33,9 +35,27 @@ def train():
 
     # load model 
     if args.scenario in ['mono2mono', 'mix2mix']:
-        mymodel = model.siamese_cnn(config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
+        if args.pretrained_model: 
+            pretrained_model = load_model(args.pretrained_model)
+            mymodel_tmp = Model(pretrained_model.inputs, pretrained_model.layers[-2].output)
+            mymodel_tmp.set_weights(pretrained_model.get_weights())
+            mymodel = model.finetuning_siamese_cnn(mymodel_tmp, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
+        else : 
+            mymodel = model.siamese_cnn(config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
+
     elif args.scenario == 'mono2mix':
-        mymodel = model.siamese_cnn_mono2mix(config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
+        if args.pretrained_model : 
+            vocal_pretrained = load_model(args.pretrained_model)
+            mix_pretrained = load_model(args.pretrained_model)
+            vocal_model_tmp = Model(vocal_pretrained.inputs, vocal_pretrained.layers[-2].output)
+            vocal_model_tmp.set_weights(vocal_pretrained.get_weights())
+            mix_model_tmp = Model(mix_pretrained.inputs, mix_pretrained.layers[-2].output)
+            mix_model_tmp.set_weights(mix_pretrained.get_weights())
+
+            mymodel = model.finetuning_vocal_to_mix(vocal_model_tmp, mix_model_tmp, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
+
+        else: 
+            mymodel = model.siamese_cnn_mono2mix(config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
 
     sgd = keras.optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
     mymodel.compile(optimizer=sgd, loss=utils.hinge_loss, metrics=['accuracy'])
