@@ -312,23 +312,27 @@ def perform_match(song, start_frame) :
 if __name__ == '__main__' : 
     parser = argparse.ArgumentParser()
     parser.add_argument('--set_type', type=str, choices=['train', 'test'],  help='Choose between "train" or "test" set', required=True)
-    parser.add_argument('--curr_batch', type=int, help='Indicate the index of the batch you want to process. It should be between 0 and (total_batch - 1)', required=True)
-    parser.add_argument('--total_batch', type=int, help='Data is big, so it is better to divide it into batches and process one batch at a time. Indicate the total number of batches you want to subdivide the data', required=True)
     args = parser.parse_args()
     print (args)
 
-    if args.curr_batch >= args.total_batch:
-        print ("curr_batch should be between 0 and total_batch -1")
-        sys.exit()
-
-    index = args.curr_batch
+    train_file = os.path.join('data', 'mashup_pair_data_train.csv')
+    test_file = os.path.join('data', 'mashup_pair_data_test.csv')
+    
 
     if args.set_type == 'train':
-        tracks_to_mix, _ = load_tracks_to_mix()
-        csvfile = open('data/mashup_pair_data_train_' + str(index) + '.csv', mode='w')
+        if os.path.exists(train_file):
+            print("File exists:", train_file)
+            sys.exit()
+        else: 
+            tracks_to_mix, _ = load_tracks_to_mix()
+            csvfile = open(train_file, mode='w')
     else :
-        _, tracks_to_mix = load_tracks_to_mix()
-        csvfile = open('data/mashup_pair_data_unseen_' + str(index) + '.csv', mode='w')
+        if os.path.exists(test_file):
+            print("File exists:", test_file)
+            sys.exit()
+        else: 
+            _, tracks_to_mix = load_tracks_to_mix()
+            csvfile = open(test_file, mode='w')
 
     batch_size = len(tracks_to_mix) // args.total_batch # number of tracks to processnow
 

@@ -21,11 +21,12 @@ def fast_sample(array):
 
 
 class FrameDataGenerator(keras.utils.Sequence):
-    def __init__(self, train_list, y_list, scenario,  mel_path, artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
+    def __init__(self, train_list, y_list, model_type,  mel_path, artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
         '''
         Args : 
             train_list: list of tracks and corresponding list of vocal segments ex.(track_path, vocal_segment)
             y_list : list of artist_id - matching train_list
+            model_type : either 'mono' or 'mix' 
             mel_path : 
             artist_tracks_segments : dict of artist to tracks to vocal segments 
             feat_mean : 
@@ -33,8 +34,7 @@ class FrameDataGenerator(keras.utils.Sequence):
         '''
         self.train_list = train_list 
         self.y_list = y_list
-        self.scenario = scenario
-        assert scenario in ['mono2mono', 'mix2mix']
+        self.model_type = model_type
         self.mel_path = mel_path
         self.artist_tracks_segments = artist_tracks_segments 
         self.feat_mean = feat_mean
@@ -75,7 +75,7 @@ class FrameDataGenerator(keras.utils.Sequence):
             feat_path, start_frame = x_item
             start_frame = int(start_frame)
             
-            if self.scenario == 'mix2mix' : 
+            if self.model_type == 'mix':
                 feat_path_name = os.path.join(self.mel_path, feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
                 feat = np.load(feat_path_name)[:, :self.input_frame_len]
             else :
@@ -97,7 +97,7 @@ class FrameDataGenerator(keras.utils.Sequence):
                 pos_start_frames = self.artist_tracks_segments[curr_artist_id][pos_feat_path]
                 pos_start_frame = int(fast_sample(pos_start_frames))
                 
-                if self.scenario == 'mix2mix': 
+                if self.model_type == 'mix':
                     pos_path_name = os.path.join(self.mel_path, pos_feat_path.replace('.npy', '_' + str(pos_start_frame) + '.npy'))
                     pos_feat = np.load(pos_path_name)[:, :self.input_frame_len]
                 else :
@@ -123,7 +123,7 @@ class FrameDataGenerator(keras.utils.Sequence):
                 neg_feat_path = fast_sample(candidate_tracks)
                 start_frame = int(fast_sample(self.artist_tracks_segments[neg_artist_id][neg_feat_path]))
                
-                if self.scenario == 'mix2mix': 
+               if self.model_type == 'mix':
                     neg_path_name = os.path.join(self.mel_path, neg_feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
                     neg_feat= np.load(neg_path_name)[:,:self.input_frame_len]
                 else :
@@ -160,7 +160,7 @@ class FrameDataGenerator(keras.utils.Sequence):
 
 
 
-class FrameDataGenerator_mono2mix(keras.utils.Sequence):
+class FrameDataGenerator_cross(keras.utils.Sequence):
     def __init__(self, train_list, y_list, mel_path, artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
         '''
         Args : 
