@@ -21,7 +21,7 @@ def fast_sample(array):
 
 
 class FrameDataGenerator(keras.utils.Sequence):
-    def __init__(self, train_list, y_list, scenario,  mel_path, train_artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
+    def __init__(self, train_list, y_list, scenario,  mel_path, artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
         '''
         Args : 
             train_list: list of tracks and corresponding list of vocal segments ex.(track_path, vocal_segment)
@@ -36,7 +36,7 @@ class FrameDataGenerator(keras.utils.Sequence):
         self.scenario = scenario
         assert scenario in ['mono2mono', 'mix2mix']
         self.mel_path = mel_path
-        self.train_artist_tracks_segments = train_artist_tracks_segments 
+        self.artist_tracks_segments = artist_tracks_segments 
         self.feat_mean = feat_mean
         self.feat_std = feat_std
         self.num_singers = num_singers
@@ -89,12 +89,12 @@ class FrameDataGenerator(keras.utils.Sequence):
             x_anchor_batch.append(feat)
 
             # pos item 
-            pos_candidates = list(self.train_artist_tracks_segments[curr_artist_id])
+            pos_candidates = list(self.artist_tracks_segments[curr_artist_id])
 
             x_pos_tmp = []
             for j in range(self.num_pos_tracks):
                 pos_feat_path = fast_sample(pos_candidates)
-                pos_start_frames = self.train_artist_tracks_segments[curr_artist_id][pos_feat_path]
+                pos_start_frames = self.artist_tracks_segments[curr_artist_id][pos_feat_path]
                 pos_start_frame = int(fast_sample(pos_start_frames))
                 
                 if self.scenario == 'mix2mix': 
@@ -113,15 +113,15 @@ class FrameDataGenerator(keras.utils.Sequence):
 
                 
             # neg
-            neg_artist_candidates = list(set(self.train_artist_tracks_segments.keys()) - set([curr_artist_id]))
+            neg_artist_candidates = list(set(self.artist_tracks_segments.keys()) - set([curr_artist_id]))
             neg_artist_ids = [fast_sample(neg_artist_candidates) for _ in range(self.num_neg_artist)]
             x_negs_tmp = []
             for j in range(self.num_neg_artist):
                 # neg_artist_id = fast_sample(neg_artist_candidates)
                 neg_artist_id = neg_artist_ids[j]
-                candidate_tracks = list(self.train_artist_tracks_segments[neg_artist_id])
+                candidate_tracks = list(self.artist_tracks_segments[neg_artist_id])
                 neg_feat_path = fast_sample(candidate_tracks)
-                start_frame = int(fast_sample(self.train_artist_tracks_segments[neg_artist_id][neg_feat_path]))
+                start_frame = int(fast_sample(self.artist_tracks_segments[neg_artist_id][neg_feat_path]))
                
                 if self.scenario == 'mix2mix': 
                     neg_path_name = os.path.join(self.mel_path, neg_feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
@@ -161,18 +161,19 @@ class FrameDataGenerator(keras.utils.Sequence):
 
 
 class FrameDataGenerator_mono2mix(keras.utils.Sequence):
-    def __init__(self, train_list, y_list, mel_path, train_artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
+    def __init__(self, train_list, y_list, mel_path, artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
         '''
         Args : 
             train_list: list of tracks and corresponding list of vocal segments ex.(track_path, vocal_segment)
             y_list : list of artist_id - matching train_list
+            mel_path :
             artist_tracks_segments : dict of artist to tracks to vocal segments 
         '''
         self.train_list = train_list 
         self.y_list = y_list
         self.vocal_mel_path = mel_path[0]
         self.mix_mel_path = mel_path[1]
-        self.train_artist_tracks_segments = train_artist_tracks_segments 
+        self.artist_tracks_segments = artist_tracks_segments 
         self.vocal_feat_mean = feat_mean[0]
         self.vocal_feat_std = feat_std[0]
         self.mix_feat_mean = feat_mean[1]
@@ -214,7 +215,7 @@ class FrameDataGenerator_mono2mix(keras.utils.Sequence):
         for i, (x_item, y_item) in enumerate(zip(list_of_x, list_of_y)):
             # anchor 
             curr_artist_id = y_item 
-            feat_path, start_frame, augment = x_item
+            feat_path, start_frame = x_item
             start_frame = int(start_frame)
             # start_frame = int(fast_sample(start_frames))
             
@@ -227,12 +228,12 @@ class FrameDataGenerator_mono2mix(keras.utils.Sequence):
             x_anchor_batch.append(feat)
             
             # pos 
-            pos_candidates = list(self.train_artist_tracks_segments[curr_artist_id])
+            pos_candidates = list(self.artist_tracks_segments[curr_artist_id])
 
             x_pos_tmp = []
             for j in range(self.num_pos_tracks):
                 pos_feat_path = fast_sample(pos_candidates)
-                pos_start_frames = self.train_artist_tracks_segments[curr_artist_id][pos_feat_path]
+                pos_start_frames = self.artist_tracks_segments[curr_artist_id][pos_feat_path]
                 pos_start_frame = int(fast_sample(pos_start_frames))
 
                 pos_path_name = os.path.join(self.mix_mel_path, pos_feat_path.replace('.npy', '_' + str(pos_start_frame) + '.npy'))
@@ -253,15 +254,15 @@ class FrameDataGenerator_mono2mix(keras.utils.Sequence):
 
                 
             # neg
-            neg_artist_candidates = list(set(self.train_artist_tracks_segments.keys()) - set([curr_artist_id]))
+            neg_artist_candidates = list(set(self.artist_tracks_segments.keys()) - set([curr_artist_id]))
             neg_artist_ids = [fast_sample(neg_artist_candidates) for _ in range(self.num_neg_artist)]
             x_negs_tmp = []
             for j in range(self.num_neg_artist):
                 # neg_artist_id = fast_sample(neg_artist_candidates)
                 neg_artist_id = neg_artist_ids[j]
-                candidate_tracks = list(self.train_artist_tracks_segments[neg_artist_id])
+                candidate_tracks = list(self.artist_tracks_segments[neg_artist_id])
                 neg_feat_path = fast_sample(candidate_tracks)
-                start_frame = int(fast_sample(self.train_artist_tracks_segments[neg_artist_id][neg_feat_path]))
+                start_frame = int(fast_sample(self.artist_tracks_segments[neg_artist_id][neg_feat_path]))
                     
                 neg_path_name = os.path.join(self.mix_mel_path, neg_feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
                 neg_feat = np.load(neg_path_name)[:, :self.input_frame_len]

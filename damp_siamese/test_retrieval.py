@@ -11,7 +11,12 @@ scenario2: mix2mix
 
 scenario3: mono2mix
 * query = mono
-* databse = mix 
+* database = mix 
+
+Model type 
+    * mono : model trained only with monophonic vocal track
+    * mix : model trained only with mixed track
+    * cross : model trained with both mono and mixed tracks 
 '''
 import os
 import sys
@@ -170,7 +175,7 @@ def test(model_path, model_type, pretrained, scenario):
             elif scenario == 'mono2mono':
                 pred = mono_get_last_layer_outputs([feat,0])[0]
             else : 
-                pred = mix_get_last_layer_outputs([feat,0])[0]
+                pred = mono_get_last_layer_outputs([feat,0])[0]
             pred = pred[0]
         else:
             pred = get_last_layer_outputs([feat, 0])[0]

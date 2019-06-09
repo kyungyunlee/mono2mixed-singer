@@ -1,3 +1,6 @@
+# Code for training 3 scenarios : mono2mono, mix2mix and mono2mix 
+# 
+#
 import os
 import sys
 import numpy as np
@@ -14,9 +17,9 @@ import utils
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_name', type=str)
-parser.add_argument('--scenario', type=str, choices=['mono2mono', 'mix2mix', 'mono2mix'])
-parser.add_argument('--pretrained_model', type=str, default=None)
+parser.add_argument('--model_name', type=str, required=True)
+parser.add_argument('--scenario', type=str, choices=['mono2mono', 'mix2mix', 'mono2mix'], required=True)
+parser.add_argument('--pretrained_model', type=str, default=None, help="path to the pretrained model")
 args = parser.parse_args()
 print("model name", args.model_name)
 print("scenario", args.scenario)
@@ -33,11 +36,11 @@ def train():
     print (x_train[0], y_train[0])
     print (len(x_train), len(y_train))
 
-    # load model 
+    # initialize  model 
     if args.scenario in ['mono2mono', 'mix2mix']:
         if args.pretrained_model: 
-            pretrained_model = load_model(args.pretrained_model)
-            mymodel_tmp = Model(pretrained_model.inputs, pretrained_model.layers[-2].output)
+            pretrained_model = keras.models.load_model(args.pretrained_model)
+            mymodel_tmp = keras.models.Model(pretrained_model.inputs, pretrained_model.layers[-2].output)
             mymodel_tmp.set_weights(pretrained_model.get_weights())
             mymodel = model.finetuning_siamese_cnn(mymodel_tmp, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
         else : 
@@ -45,14 +48,14 @@ def train():
 
     elif args.scenario == 'mono2mix':
         if args.pretrained_model : 
-            vocal_pretrained = load_model(args.pretrained_model)
-            mix_pretrained = load_model(args.pretrained_model)
-            vocal_model_tmp = Model(vocal_pretrained.inputs, vocal_pretrained.layers[-2].output)
+            vocal_pretrained = keras.models.load_model(args.pretrained_model)
+            mix_pretrained = keras.models.load_model(args.pretrained_model)
+            vocal_model_tmp = keras.models.Model(vocal_pretrained.inputs, vocal_pretrained.layers[-2].output)
             vocal_model_tmp.set_weights(vocal_pretrained.get_weights())
-            mix_model_tmp = Model(mix_pretrained.inputs, mix_pretrained.layers[-2].output)
+            mix_model_tmp = keras.models.Model(mix_pretrained.inputs, mix_pretrained.layers[-2].output)
             mix_model_tmp.set_weights(mix_pretrained.get_weights())
 
-            mymodel = model.finetuning_vocal_to_mix(vocal_model_tmp, mix_model_tmp, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
+            mymodel = model.finetuning_mono2mix(vocal_model_tmp, mix_model_tmp, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
 
         else: 
             mymodel = model.siamese_cnn_mono2mix(config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
@@ -122,7 +125,7 @@ def train():
             steps_per_epoch=train_steps,
             max_queue_size=10,
             shuffle=False,
-            workers=5,
+            workers=config.num_parallel,
             use_multiprocessing=True,
             epochs=config.num_epochs,
             verbose=1,

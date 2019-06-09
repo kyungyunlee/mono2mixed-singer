@@ -47,7 +47,7 @@ mix_total_std = 0.27396998 # new mashup
 
 batch_size=32
 num_epochs=1000
-
+num_parallel=20
 
 
 ss_total_mean=0.15362854

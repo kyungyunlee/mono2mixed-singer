@@ -155,7 +155,7 @@ def test(model_path, model_type, pretrained, scenario):
             elif scenario == 'mono2mono':
                 pred = mono_get_last_layer_outputs([feat, 0])[0]
             else :
-                pred = mix_get_last_layer_outputs([feat, 0])[0]
+                pred = mono_get_last_layer_outputs([feat, 0])[0]
             pred = pred[0]
         else:
             pred = get_last_layer_outputs([feat, 0])[0]
