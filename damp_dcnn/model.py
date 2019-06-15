@@ -1,6 +1,5 @@
 import os 
 import numpy as np
-
 import tensorflow as tf
 import keras.backend as K
 from keras.layers import Conv1D, MaxPool1D, BatchNormalization, GlobalAvgPool1D, Dense, Dropout, Activation, Reshape, Input, Concatenate, dot, Add, Multiply, Flatten, concatenate, LeakyReLU, Lambda, Merge, UpSampling1D

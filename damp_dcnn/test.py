@@ -2,24 +2,19 @@ import os
 import sys
 import numpy as np
 from random import shuffle
-
 import tensorflow as tf 
 import keras
 from keras import backend as K
-from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, CSVLogger, Callback
-from keras.optimizers import SGD, Adam
 from keras import metrics
 from keras.models import load_model, Model
 from sklearn.metrics.pairwise import cosine_similarity
-from operator import itemgetter 
 import argparse
 # print (K.tensorflow_backend._get_available_gpus())
 
 import model
 import dataloader 
-import config
 sys.path.append('../')
-import utils 
+import damp_config as config
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
@@ -32,14 +27,12 @@ args = parser.parse_args()
 if args.data_type == 'mono': 
     feat_mean = config.vocal_total_mean
     feat_std = config.vocal_total_std 
-    mel_path = config.vocal_mel_path
+    mel_path = config.vocal_mel_dir
 else : 
     feat_mean = config.mix_total_mean
     feat_std = config.mix_total_std
-    mel_path = config.mix_mel_path
+    mel_path = config.mix_mel_dir
 
-
-keras.losses.hinge_loss = utils.hinge_loss
 
 
 def build_singer_model(model, train_list, feat_mean, feat_std, mel_path, num_singers, forBuildingModel):
@@ -122,8 +115,8 @@ def test():
     
     # load data 
     artist_list = np.load('../data/unseen_artist_300_2.npy')
-    train_list, _  = utils.load_data_segment('../data/unseen_model_artist_track_300_2.pkl',artist_list)
-    test_list, _ = utils.load_data_segment('../data/unseen_eval_artist_track_300_2.pkl', artist_list)
+    train_list, _  = dataloader.load_data_segment('../data/unseen_model_artist_track_300_2.pkl',artist_list)
+    test_list, _ = dataloader.load_data_segment('../data/unseen_eval_artist_track_300_2.pkl', artist_list)
     print ('train, test', len(train_list), len(test_list))
 
     # load model 

@@ -1,4 +1,5 @@
-**Change the path in the config file**
+## Train and test singer classification model
+Uses the DAMP original and mashup dataset 
 
 ### To train classification model for monophonic or mixed tracks 
 ```

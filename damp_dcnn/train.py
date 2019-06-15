@@ -2,7 +2,6 @@ import os
 import sys
 import numpy as np
 from random import shuffle
-
 import tensorflow as tf 
 from keras import backend as K
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, CSVLogger, Callback
@@ -15,11 +14,10 @@ import argparse
 
 import model
 import dataloader 
-import config
 sys.path.append('../')
-from utils import load_data_segment
+import damp_config as config
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "6" # 4 for ss, 5 for mix
+os.environ["CUDA_VISIBLE_DEVICES"] = "6" 
 
 
 parser = argparse.ArgumentParser()
@@ -33,17 +31,16 @@ print("model name", args.model_name)
 if args.data_type == 'mix' : 
     feat_mean = config.mix_total_mean
     feat_std = config.mix_total_std
-    mel_path = config.mix_mel_path
+    mel_path = config.mix_mel_dir
 else : 
     feat_mean = config.vocal_total_mean
     feat_std = config.vocal_total_std
-    mel_path = config.vocal_mel_path 
+    mel_path = config.vocal_mel_dir 
 
 
 train_artist_list = np.load('../data/artist_1000.npy')
-train_list, train_artist_names  = load_data_segment('../data/train_artist_track_1000.pkl', train_artist_list)
-valid_list, _  = load_data_segment('../data/valid_artist_track_1000.pkl', train_artist_list)
-
+train_list, train_artist_names  = dataloader.load_data_segment('../data/train_artist_track_1000.pkl', train_artist_list)
+valid_list, _  = dataloader.load_data_segment('../data/valid_artist_track_1000.pkl', train_artist_list)
 
 
 def train():
@@ -80,7 +77,6 @@ def train():
                                   patience=3,
                                   verbose=1,
                                   min_lr=1e-6)
-    # callbacks = [checkpoint, earlystopping, reduce_lr, Score_history()]
     callbacks = [checkpoint, earlystopping, reduce_lr]
 
     

@@ -22,34 +22,29 @@ import os
 import sys
 import numpy as np
 from random import shuffle
-
 import tensorflow as tf 
 from keras import backend as K
 from keras import metrics
 from keras.models import load_model, Model
 import keras.losses
-from sklearn.metrics.pairwise import cosine_similarity,euclidean_distances 
-from operator import itemgetter 
+from sklearn.metrics.pairwise import cosine_similarity 
 from collections import OrderedDict
-import csv
 import argparse
 
 import model
 import dataloader 
-import config
 import test_utils
-sys.path.append('../')
-import utils
+
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-keras.losses.hinge_loss = utils.hinge_loss
+keras.losses.hinge_loss = model.hinge_loss
 
 # args 
 parser = argparse.ArgumentParser()
-parser.add_argument('--scenario', type=str, choices=['mono2mono', 'mix2mix', 'mono2mix'], help='test scenario')
-parser.add_argument('--model_type', type=str, choices=['mono', 'mix', 'cross'])
-parser.add_argument('--pretrained', type=bool, help='using model trained with pretrained model?')
-parser.add_argument('--model_path', type=str)
+parser.add_argument('--scenario', type=str, choices=['mono2mono', 'mix2mix', 'mono2mix'], help='test scenario', required=True)
+parser.add_argument('--model_type', type=str, choices=['mono', 'mix', 'cross'], required=True)
+parser.add_argument('--pretrained', action='store_true', help='using model trained with pretrained model?')
+parser.add_argument('--model_path', type=str, required=True)
 args = parser.parse_args()
 print ("scenario:", args.scenario)
 print("model path:", args.model_path)

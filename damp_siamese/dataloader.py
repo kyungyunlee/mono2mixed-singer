@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import sys
 import numpy as np
 import random
 import librosa
@@ -11,7 +12,8 @@ import pickle
 import random
 from pathlib import Path
 
-import config 
+sys.path.append('../')
+import damp_config as config 
 
 
 def fast_sample(array): 
@@ -21,13 +23,13 @@ def fast_sample(array):
 
 
 class FrameDataGenerator(keras.utils.Sequence):
-    def __init__(self, train_list, y_list, model_type,  mel_path, artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
+    def __init__(self, train_list, y_list, model_type,  mel_dir, artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
         '''
         Args : 
             train_list: list of tracks and corresponding list of vocal segments ex.(track_path, vocal_segment)
             y_list : list of artist_id - matching train_list
             model_type : either 'mono' or 'mix' 
-            mel_path : 
+            mel_dir : 
             artist_tracks_segments : dict of artist to tracks to vocal segments 
             feat_mean : 
             feat_std : 
@@ -35,7 +37,7 @@ class FrameDataGenerator(keras.utils.Sequence):
         self.train_list = train_list 
         self.y_list = y_list
         self.model_type = model_type
-        self.mel_path = mel_path
+        self.mel_dir = mel_dir
         self.artist_tracks_segments = artist_tracks_segments 
         self.feat_mean = feat_mean
         self.feat_std = feat_std
@@ -76,10 +78,10 @@ class FrameDataGenerator(keras.utils.Sequence):
             start_frame = int(start_frame)
             
             if self.model_type == 'mix':
-                feat_path_name = os.path.join(self.mel_path, feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
+                feat_path_name = os.path.join(self.mel_dir, feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
                 feat = np.load(feat_path_name)[:, :self.input_frame_len]
             else :
-                feat_path_name = os.path.join(self.mel_path, feat_path)
+                feat_path_name = os.path.join(self.mel_dir, feat_path)
                 feat = np.load(feat_path_name)[:, start_frame:start_frame+self.input_frame_len]
             
             feat = feat.T
@@ -98,10 +100,10 @@ class FrameDataGenerator(keras.utils.Sequence):
                 pos_start_frame = int(fast_sample(pos_start_frames))
                 
                 if self.model_type == 'mix':
-                    pos_path_name = os.path.join(self.mel_path, pos_feat_path.replace('.npy', '_' + str(pos_start_frame) + '.npy'))
+                    pos_path_name = os.path.join(self.mel_dir, pos_feat_path.replace('.npy', '_' + str(pos_start_frame) + '.npy'))
                     pos_feat = np.load(pos_path_name)[:, :self.input_frame_len]
                 else :
-                    pos_path_name = os.path.join(self.mel_path, pos_feat_path)
+                    pos_path_name = os.path.join(self.mel_dir, pos_feat_path)
                     pos_feat = np.load(pos_path_name)[:, pos_start_frame:pos_start_frame + self.input_frame_len]
 
                 pos_feat = pos_feat.T
@@ -123,11 +125,11 @@ class FrameDataGenerator(keras.utils.Sequence):
                 neg_feat_path = fast_sample(candidate_tracks)
                 start_frame = int(fast_sample(self.artist_tracks_segments[neg_artist_id][neg_feat_path]))
                
-               if self.model_type == 'mix':
-                    neg_path_name = os.path.join(self.mel_path, neg_feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
+                if self.model_type == 'mix':
+                    neg_path_name = os.path.join(self.mel_dir, neg_feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
                     neg_feat= np.load(neg_path_name)[:,:self.input_frame_len]
                 else :
-                    neg_path_name = os.path.join(self.mel_path, neg_feat_path)
+                    neg_path_name = os.path.join(self.mel_dir, neg_feat_path)
                     neg_feat = np.load(neg_path_name)[:, start_frame:start_frame+self.input_frame_len]
                 neg_feat = neg_feat.T
                 neg_feat -= self.feat_mean
@@ -161,18 +163,18 @@ class FrameDataGenerator(keras.utils.Sequence):
 
 
 class FrameDataGenerator_cross(keras.utils.Sequence):
-    def __init__(self, train_list, y_list, mel_path, artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
+    def __init__(self, train_list, y_list, mel_dir, artist_tracks_segments, feat_mean, feat_std, num_singers, batch_size, input_frame_len, num_neg_artist, num_pos_tracks, shuffle):
         '''
         Args : 
             train_list: list of tracks and corresponding list of vocal segments ex.(track_path, vocal_segment)
             y_list : list of artist_id - matching train_list
-            mel_path :
+            mel_dir :
             artist_tracks_segments : dict of artist to tracks to vocal segments 
         '''
         self.train_list = train_list 
         self.y_list = y_list
-        self.vocal_mel_path = mel_path[0]
-        self.mix_mel_path = mel_path[1]
+        self.vocal_mel_dir = mel_dir[0]
+        self.mix_mel_dir = mel_dir[1]
         self.artist_tracks_segments = artist_tracks_segments 
         self.vocal_feat_mean = feat_mean[0]
         self.vocal_feat_std = feat_std[0]
@@ -219,7 +221,7 @@ class FrameDataGenerator_cross(keras.utils.Sequence):
             start_frame = int(start_frame)
             # start_frame = int(fast_sample(start_frames))
             
-            feat = np.load(os.path.join(self.vocal_mel_path, feat_path))[:, start_frame : start_frame + config.input_frame_len]
+            feat = np.load(os.path.join(self.vocal_mel_dir, feat_path))[:, start_frame : start_frame + config.input_frame_len]
             feat = feat.T
 
             feat -= self.vocal_feat_mean
@@ -236,7 +238,7 @@ class FrameDataGenerator_cross(keras.utils.Sequence):
                 pos_start_frames = self.artist_tracks_segments[curr_artist_id][pos_feat_path]
                 pos_start_frame = int(fast_sample(pos_start_frames))
 
-                pos_path_name = os.path.join(self.mix_mel_path, pos_feat_path.replace('.npy', '_' + str(pos_start_frame) + '.npy'))
+                pos_path_name = os.path.join(self.mix_mel_dir, pos_feat_path.replace('.npy', '_' + str(pos_start_frame) + '.npy'))
                 pos_feat = np.load(pos_path_name)[:, : self.input_frame_len]
                 pos_feat = pos_feat.T
 
@@ -264,9 +266,9 @@ class FrameDataGenerator_cross(keras.utils.Sequence):
                 neg_feat_path = fast_sample(candidate_tracks)
                 start_frame = int(fast_sample(self.artist_tracks_segments[neg_artist_id][neg_feat_path]))
                     
-                neg_path_name = os.path.join(self.mix_mel_path, neg_feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
+                neg_path_name = os.path.join(self.mix_mel_dir, neg_feat_path.replace('.npy', '_' + str(start_frame) + '.npy'))
                 neg_feat = np.load(neg_path_name)[:, :self.input_frame_len]
-                # neg_feat = np.load(os.path.join(self.mix_mel_path, neg_feat_path))[:,start_frame:start_frame + self.input_frame_len] 
+                # neg_feat = np.load(os.path.join(self.mix_mel_dir, neg_feat_path))[:,start_frame:start_frame + self.input_frame_len] 
                 neg_feat = neg_feat.T
 
                 neg_feat -= self.mix_feat_mean
@@ -306,24 +308,61 @@ class FrameDataGenerator_cross(keras.utils.Sequence):
 
 
 
-if __name__ == '__main__':
-    from load_siamese_data_frame import load_siamese_data
+def load_data_segment(picklefile, artist_list):
+    train_data = []
+    artist_names = []
 
-    x_train, y_train, train_artist_tracks_segments = load_siamese_data(config.data_dir + 'msd_train_data_1000_b.csv')
-    # x_valid, y_valid, valid_artist_tracks_segments = load_siamese_data(config.data_dir + 'msd_valid_data_1000_b.csv')
+    f = pickle.load(open(picklefile, 'rb'))
+    artist_to_id = {}
+    for u in range(len(artist_list)):
+        artist_to_id[artist_list[u]] = u
+
+    for artist_id, tracks in f.items():
+        for track_id, svd in tracks.items():
+            center_segs = svd[len(svd)//2 - 10 : len(svd)//2 + 10]
+            # center_segs = svd[len(svd)//2 - 5 : len(svd)//2 + 5]
+            start_frames = librosa.time_to_frames(center_segs, sr=config.sr, hop_length=config.hop_length, n_fft=config.n_fft)
+            for i in range(len(start_frames)):
+                start_frame = start_frames[i]
+                if start_frame < 0:
+                    start_frame = 0
+                train_data.append((artist_to_id[artist_id], track_id + '.npy', start_frame))
+                artist_names.append(artist_id)
+                artist_names.append(artist_id)
+
+    return train_data, artist_names
 
 
-    feat_mean = np.load('mix_train_mean.npy')
-    feat_std = np.load('mix_train_std.npy')
-    # valx, valy = load_valid_identification(x_valid, feat_mean, feat_std, 500, config.mel_path)
-    gen = FrameDataGenerator(x_train, y_train, train_artist_tracks_segments, feat_mean, feat_std, 1000, config.batch_size, config.input_frame_len, len(x_train) // config.batch_size,4,1)
-    print (gen[0])
-    '''
-    artist_id, feat_path, vocal_idx = x_train[0]
-    feat = np.load(os.path.join(config.mel_path, feat_path))
-    print (feat.shape)
-    print (artist_id, vocal_idx)
-    '''
+def load_siamese_data (picklefile, artist_list, num_train_artist):
+
+    artist_track_segs = {}
+    f = pickle.load(open(picklefile, 'rb'))
+    artist_to_id = {}
+    for u in range(len(artist_list)):
+        artist_to_id[artist_list[u]] = u
+
+    train_data = []
+    y_data = []
+    for artist_id, tracks in f.items() :
+        artist_track_segs[artist_to_id[artist_id]] = {}
+
+        for track_id, svd in tracks.items() :
+            center_segs = svd[len(svd) // 2 - 10 : len(svd) //2 + 10]
+            start_frames = librosa.time_to_frames(center_segs, sr=config.sr, hop_length=config.hop_length, n_fft=config.n_fft)
+            artist_track_segs[artist_to_id[artist_id]][track_id + '.npy'] = start_frames        
+            for i in range(len(start_frames)):
+                start_frame = start_frames [i]
+                if start_frame < 0 :
+                    start_frame = 0
+
+                train_data.append((track_id + '.npy', start_frame))
+                y_data.append(artist_to_id[artist_id])
+
+    train_data = np.array(train_data)
+    y_data = np.array(y_data)
+
+    return train_data, y_data, artist_track_segs
+
 
 
 

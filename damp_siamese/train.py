@@ -8,14 +8,12 @@ import tensorflow as tf
 from keras import backend as K
 import keras 
 import argparse 
-
 import model
 import dataloader
-import config 
 sys.path.append('../')
-import utils
+import damp_config as config
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str, required=True)
 parser.add_argument('--model_type', type=str, choices=['mono', 'mix', 'cross'], required=True)
@@ -30,8 +28,8 @@ print("pretrained model path", args.pretrained_model)
 def train():
     # load data 
     train_artists = np.load(os.path.join(config.data_dir, 'artist_1000.npy'))
-    x_train, y_train, train_artist_tracks_segments = utils.load_siamese_data(os.path.join(config.data_dir, 'train_artist_track_1000.pkl'), train_artists, 1000)
-    x_valid, y_valid, valid_artist_tracks_segments = utils.load_siamese_data(os.path.join(config.data_dir, 'valid_artist_track_1000.pkl'), train_artists, 1000)
+    x_train, y_train, train_artist_tracks_segments = dataloader.load_siamese_data(os.path.join(config.data_dir, 'train_artist_track_1000.pkl'), train_artists, 1000)
+    x_valid, y_valid, valid_artist_tracks_segments = dataloader.load_siamese_data(os.path.join(config.data_dir, 'valid_artist_track_1000.pkl'), train_artists, 1000)
 
     print (x_train[0], y_train[0])
     print (len(x_train), len(y_train))
@@ -61,7 +59,7 @@ def train():
             mymodel = model.siamese_cnn_mono2mix(config.input_frame_len, config.num_neg_artist, config.num_pos_tracks)
 
     sgd = keras.optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-    mymodel.compile(optimizer=sgd, loss=utils.hinge_loss, metrics=['accuracy'])
+    mymodel.compile(optimizer=sgd, loss=model.hinge_loss, metrics=['accuracy'])
     print(mymodel.summary())
 
     weight_name = os.path.join('models', args.model_name + '.{epoch:02d}.h5')
@@ -91,28 +89,28 @@ def train():
    
 
     if args.model_type == 'mono':
-            mel_path = config.vocal_mel_path
+            mel_dir = config.vocal_mel_dir
             feat_mean = config.vocal_total_mean
             feat_std = config.vocal_total_std
 
-            train_generator = dataloader.FrameDataGenerator(x_train, y_train, 'mono', mel_path, train_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=True)
-            valid_generator = dataloader.FrameDataGenerator(x_valid, y_valid, 'mono', mel_path, valid_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=False)
+            train_generator = dataloader.FrameDataGenerator(x_train, y_train, 'mono', mel_dir, train_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=True)
+            valid_generator = dataloader.FrameDataGenerator(x_valid, y_valid, 'mono', mel_dir, valid_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=False)
 
     elif args.model_type  == 'mix':
-            mel_path = config.mix_mel_path
+            mel_dir = config.mix_mel_dir
             feat_mean = config.mix_total_mean
             feat_std = config.mix_total_std
 
-            train_generator = dataloader.FrameDataGenerator(x_train, y_train, 'mix', mel_path, train_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=True)
-            valid_generator = dataloader.FrameDataGenerator(x_valid, y_valid, 'mix', mel_path, valid_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=False)
+            train_generator = dataloader.FrameDataGenerator(x_train, y_train, 'mix', mel_dir, train_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=True)
+            valid_generator = dataloader.FrameDataGenerator(x_valid, y_valid, 'mix', mel_dir, valid_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=False)
 
     elif args.model_type == 'cross':
-        mel_path = [config.vocal_mel_path, config.mix_mel_path]
+        mel_dir = [config.vocal_mel_dir, config.mix_mel_dir]
         feat_mean = [config.vocal_total_mean, config.mix_total_mean]
         feat_std = [config.vocal_total_std, config.mix_total_std]
 
-        train_generator = dataloader.FrameDataGenerator_cross(x_train, y_train, mel_path, train_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=True)
-        valid_generator = dataloader.FrameDataGenerator_cross(x_valid, y_valid, mel_path, valid_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=False)
+        train_generator = dataloader.FrameDataGenerator_cross(x_train, y_train, mel_dir, train_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=True)
+        valid_generator = dataloader.FrameDataGenerator_cross(x_valid, y_valid, mel_dir, valid_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=False)
 
     
     train_steps = int(len(x_train) / config.batch_size)

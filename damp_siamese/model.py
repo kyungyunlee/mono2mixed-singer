@@ -4,11 +4,22 @@ import numpy as np
 import tensorflow as tf 
 import keras.backend as K
 from keras.layers import Conv1D, MaxPool1D, BatchNormalization, GlobalAvgPool1D, Dense, Dropout, Activation, Reshape, Input, Concatenate, dot, Add, Flatten, concatenate, LeakyReLU, Lambda, merge
-from keras.layers import Conv2D, MaxPool2D, GlobalAvgPool2D
 from keras.models import Model
 from keras.regularizers import l2
 
-import config 
+sys.path.append('../')
+import damp_config as config
+
+def hinge_loss(y_true, y_pred):
+    y_pos = y_pred[:, :config.num_pos_tracks]
+    y_neg = y_pred[:, config.num_pos_tracks:]
+
+    total_loss = 0.0
+    for i in range(config.num_pos_tracks):
+        loss = K.sum(K.maximum(0., config.margin - y_pos[:, i:i+1] + y_neg))
+        total_loss += loss
+    return total_loss
+
 
 
 def siamese_cnn_mono2mix(num_frame, num_neg_artist, num_pos_track):
@@ -141,24 +152,20 @@ def finetuning_mono2mix(vocal_model, mix_model, num_frame,num_neg_artist, num_po
 
     outputs = Activation('linear', name='siamese')(all_dists)
     '''
-
     # euc distance 
     norm = Lambda(lambda x: K.l2_normalize(x, axis=1), name='l2_norm')
     anchor_out = norm(anchor_out)
     pos_outs = [norm(pos_out) for pos_out in pos_outs]
     neg_outs = [norm(neg_out) for neg_out in neg_outs]
-
     distance = Lambda(euclidean_dist, output_shape=euclidean_dist_output_shape, name='euclidean')
     pos_dists = [distance([anchor_out, pos_out]) for pos_out in pos_outs]
     neg_dists = [distance([anchor_out, neg_out]) for neg_out in neg_outs]
-
     outputs = concatenate(pos_dists + neg_dists)
     '''
 
     '''
     distance  = Lambda(euclidean_dist, output_shape=euclidean_dist_output_shape, name='euclidean')
     pos_dist = distance([anchor_out, pos_outs[0]]) 
-
     model = Model(inputs=[anchor]+ pos_items + neg_items, outputs=[outputs, pos_dist])
     '''
     model = Model(inputs=[anchor]+ pos_items + neg_items, outputs=outputs)
@@ -263,7 +270,6 @@ def siamese_cnn(num_frame, num_neg_artist, num_pos_track):
     pos_dists = [distance([anchor_out, pos_out]) for pos_out in pos_outs]
     neg_dists = [distance([anchor_out, neg_out]) for neg_out in neg_outs]
     all_dists = concatenate(pos_dists + neg_dists)
-
     outputs = all_dists 
     '''
 
@@ -471,7 +477,6 @@ def finetuning_siamese_cnn(mymodel_tmp, num_frame, num_neg_artist, num_pos_track
     pos_dists = [distance([anchor_out, pos_out]) for pos_out in pos_outs]
     neg_dists = [distance([anchor_out, neg_out]) for neg_out in neg_outs]
     all_dists = concatenate(pos_dists + neg_dists)
-
     outputs = all_dists 
     '''
 
