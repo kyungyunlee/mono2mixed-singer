@@ -9,3 +9,11 @@ python train.py --model_name blahblah --data_type mono
 # to train with mixed tracks 
 python train.py --model_name blahblah --data_type mix
 ```
+
+### Trained model
+* Mix
+    * `models/mixed_1000.h5`
+* Mono
+    * `models/mono_1000.h5`
+
+

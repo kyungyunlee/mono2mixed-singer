@@ -1,6 +1,6 @@
-data_dir = '/home1/irteam/users/kylee/dev/mono2mixed-singer/data/msd_data'
-audio_dir = '/home1/irteam/users/jongpil/data/msd/songs' 
-mel_dir = '/home1/irteam/users/kylee/data/msd_svd_mel_128'
+data_dir = '/home1/irteam/users/kylee/dev/mono2mixed-singer/data/msd_data'  # base directory for all data
+audio_dir = '/home1/irteam/users/jongpil/data/msd/songs' # original MSD audio dir
+mel_dir = '/home1/irteam/users/kylee/data/msd_svd_mel_128' # MSD-singer melspectrogram dir 
 
 sr=22050
 n_fft=1024

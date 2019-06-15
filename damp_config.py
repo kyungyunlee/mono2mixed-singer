@@ -1,9 +1,9 @@
 import os 
-data_dir = '/home1/irteam/users/kylee/dev/mono2mixed-singer/data'
-vocal_mel_dir = os.path.join(data_dir, 'damp_mel')
-vocal_audio_dir = os.path.join(data_dir, 'damp_audio')
-mix_mel_dir = os.path.join(data_dir, 'damp_mashup_mix_snr_mel_v2')
-mix_audio_dir = os.path.join(data_dir,'damp_mashup_mix_snr_v2')
+data_dir = '/home1/irteam/users/kylee/dev/mono2mixed-singer/data' # base data dir 
+vocal_mel_dir = os.path.join(data_dir, 'damp_mel') # path to original DAMP data melspectrogram
+vocal_audio_dir = os.path.join(data_dir, 'damp_audio') # path to original DAMP audio files 
+mix_mel_dir = os.path.join(data_dir, 'damp_mashup_mix_snr_mel_v2') # path to DAMP mashup data melspectrogram
+mix_audio_dir = os.path.join(data_dir,'damp_mashup_mix_snr_v2') # path to DAMP mashup data audio files 
 
 num_singers=1000
 num_pos_tracks=1

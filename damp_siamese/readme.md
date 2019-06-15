@@ -33,3 +33,17 @@ python test_retrieval.py --model_path 'path_to_cross_model.h5' --model_type cros
 # if the model did not use a pretrained model
 python test.py --model_path 'path_to_cross_model.h5' --model_type cross --scenario mono2mix 
 ```
+
+### Model weights
+* CROSS
+    * pretrained : `models/cross_pretrained.h5`
+    * scratch : `models/cross_scratch.h5`
+* MONO 
+    * pretrained : `models/mono_pretrained.h5`
+    * scratch : `models/mono_scratch.h5`
+* MIX 
+    * pretrained : `models/mix_pretrained.h5`
+    * scratch : `models/mix_scratch.h5`
+
+
+

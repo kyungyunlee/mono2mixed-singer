@@ -12,3 +12,6 @@ python train.py --model_name blahblah
 ```
 python test.py --model_path 'models/blahblah.h5'
 ```
+
+### Trained model 
+* `'models/classification_1000.h5'`
