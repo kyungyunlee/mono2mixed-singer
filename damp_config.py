@@ -4,6 +4,7 @@ vocal_mel_dir = os.path.join(data_dir, 'damp_mel') # path to original DAMP data 
 vocal_audio_dir = os.path.join(data_dir, 'damp_audio') # path to original DAMP audio files 
 mix_mel_dir = os.path.join(data_dir, 'damp_mashup_mix_snr_mel_v2') # path to DAMP mashup data melspectrogram
 mix_audio_dir = os.path.join(data_dir,'damp_mashup_mix_snr_v2') # path to DAMP mashup data audio files 
+bg_audio_dir = os.path.join(data_dir, 'musdb_accompaniment_combined')
 
 num_singers=1000
 num_pos_tracks=1

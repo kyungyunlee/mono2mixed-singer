@@ -12,7 +12,7 @@ conda env create -f conda-keras-env.yml
 pip install -r requirements.txt
 ```
 
-### Data setup 
+### Setup 
 I generated my own dataset from the publicly available datasets. Make sure you create all the dataset and set the path in the config files (`msd_config.py` and `damp_config.py`).  
 
 
@@ -21,12 +21,12 @@ This is derived from the [Million Song Dataset](http://millionsongdataset.com/).
 Details can be found [here](https://github.com/kyungyunlee/MSD-singer). 
 
 **DAMP**    
-Code for music mashup and instructions are under `mashup` directory.   
-You have to create your own mashup to proceed further.   
+Code for music mashup is under `vocalMashup` directory.
+You have to create your own mashup to train models in the paper.   
 
 **Preprocessing audio features**   
 Input to the model is melspectrogram. I recommend precomputing the melspectrogram of all the audio data to speed up the training process if enough disk space is available (34G for DAMP mashup, 119G for MSD-Singer)     
-Code is in `feature_extract.py`. Run the file to extract features.    
+Code is in `feature_extract.py`. Run this file to extract features.    
 
 
 ### Training and testing

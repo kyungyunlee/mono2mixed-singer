@@ -30,8 +30,8 @@ print("pretrained model path", args.pretrained_model)
 
 def train():
     
-    x_train, y_train, train_artist_tracks_segments = dataloader.load_siamese_data(os.path.join(config.data_dir, 'msd_train_data_'+str(config.num_singers) + version + '.csv'), config.num_singers)
-    x_valid, y_valid, valid_artist_tracks_segments = dataloader.load_siamese_data(os.path.join(config.data_dir, 'msd_valid_data_' + str(config.num_singers) + version + '.csv'), config.num_singers)
+    x_train, y_train, train_artist_tracks_segments = dataloader.load_siamese_data(os.path.join(config.data_dir, 'msd_train_data_'+str(config.num_singers) + '_d.csv'), config.num_singers)
+    x_valid, y_valid, valid_artist_tracks_segments = dataloader.load_siamese_data(os.path.join(config.data_dir, 'msd_valid_data_' + str(config.num_singers) + '_d.csv'), config.num_singers)
 
 
     
