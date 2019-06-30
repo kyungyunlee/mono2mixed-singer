@@ -11,6 +11,8 @@ import pickle
 from pathlib import Path
 from multiprocessing import Pool
 
+NUM_PARALLEL = 20
+
 AUDIO_PARAMS = {
         'sr': 22050,
         'n_fft': 1024,
@@ -116,27 +118,20 @@ def bg_handler(bg_track, duration=3.0):
         key, ismajor = compute_key(seg)
         if len(seg) == int(duration * AUDIO_PARAMS['sr']): 
             segment_key[onset_sample]  = (key, ismajor)
-    print (bg_track)
-    return bg_track, {'y':bg_y, 'tempo': bg_tempo_beat['tempo'], 'beat': segment_key}
+    print (bg_track.stem)
+    return bg_track.stem, {'y':bg_y, 'tempo': bg_tempo_beat['tempo'], 'beat': segment_key}
 
 
 
 def precompute_bg_info(bg_dir, duration=3.0):
     
     list_of_bg = [bg_track for bg_track in Path(bg_dir).glob('*.wav')]
-    '''
-    with Pool(4) as p : 
-        # for result in p.imap_unordered(bg_handler, list_of_bg):
-        # print (result)
+
+    with Pool(NUM_PARALLEL) as p : 
         res = p.map(bg_handler, list_of_bg)
     
     bg_info = {} 
     for result in res : 
-        bg_info[result[0]] = result[1]
-    '''
-    bg_info = {}
-    for bg_track in list_of_bg:
-        result = bg_handler(bg_track, duration)
         bg_info[result[0]] = result[1]
 
     print('saving to bg_info.pkl')
@@ -177,7 +172,7 @@ def find_mashup_pairs(vocal_path, bg_dir, duration=3.0, num_segments=10):
     input_frame_len = librosa.time_to_frames(duration, sr=AUDIO_PARAMS['sr'], hop_length=AUDIO_PARAMS['hop_length'])
     input_hop_len = input_frame_len // 2
 
-    vocal_y, _ = librosa.load(vocal_path, sr=AUDIO_PARAMS['sr'])
+    vocal_y, _ = librosa.load(str(vocal_path), sr=AUDIO_PARAMS['sr'])
     # tempo, beat detection
     vocal_tempo_beat = compute_beat(vocal_y)
     print ('Vocal track tempo:', vocal_tempo_beat['tempo'])
@@ -206,7 +201,7 @@ def find_mashup_pairs(vocal_path, bg_dir, duration=3.0, num_segments=10):
     same_tempo = []
     near_tempo = [] 
     for bg_track in list_of_bg:
-        bg_track_info= bg_info[bg_track]
+        bg_track_info= bg_info[bg_track.stem]
         if bg_track_info['tempo']== vocal_tempo_beat['tempo'] : 
             same_tempo.append((bg_track, bg_track_info))
         elif abs(bg_track_info['tempo'] - vocal_tempo_beat['tempo']) < 4: 
@@ -298,9 +293,9 @@ def mash(vocal_path, vocal_start, bg_path, bg_start, duration):
         output : mixed signal in samples 
     '''
     input_sample_len = int(duration * AUDIO_PARAMS['sr'])
-    vocal_y, _ = librosa.load(vocal_path, sr=AUDIO_PARAMS['sr'])
+    vocal_y, _ = librosa.load(str(vocal_path), sr=AUDIO_PARAMS['sr'])
     vocal_y = vocal_y[vocal_start : vocal_start + input_sample_len] 
-    bg_y, _ = librosa.load(bg_path, sr=AUDIO_PARAMS['sr'])
+    bg_y, _ = librosa.load(str(bg_path), sr=AUDIO_PARAMS['sr'])
     bg_y = bg_y[bg_start : bg_start + input_sample_len]
     
     # adjust loudness 
@@ -327,7 +322,7 @@ def mash(vocal_path, vocal_start, bg_path, bg_start, duration):
     output_gain = compute_loudness(output)
     print ("output gain", output_gain)
     
-    while output_gain > 0.5 : 
+    while output_gain > 0.4 : 
         output = output / 1.1
         output_gain = compute_loudness(output)
 
@@ -358,8 +353,8 @@ def process_damp_data(artist_tracks_file):
            
             for start_sample, (bg_track, (bg_start_sample, bg_key, bg_ismajor)) in mashability_result.items(): 
                 print (start_sample, bg_track, bg_start_sample)
-                mixed_output = mash(vocal_path, start_sample, bg_track, bg_start_sample, 3.0)
-                start_frame = librosa.sample_to_frames(start_sample, hop_length =damp_config.hop_length, n_fft=damp_config.n_fft)
+                mixed_output = mash(vocal_track_path, start_sample, bg_track, bg_start_sample, 3.0)
+                start_frame = librosa.samples_to_frames(start_sample, hop_length =damp_config.hop_length, n_fft=damp_config.n_fft)
                 # librosa.output.write_wav(os.path.join('damp_mashup_output', Path(vocal_path).stem + '_' + str(start_frame) +'.wav'), mixed_output, sr=AUDIO_PARAMS['sr'])
 
 
@@ -369,10 +364,10 @@ def process_damp_data(artist_tracks_file):
 
 if __name__ == '__main__':
     import pickle
-    train_data_path = '../data/damp_train_artist_tracks_1000.pkl'
-    valid_data_path = '../data/damp_valid_artist_tracks_1000.pkl'
-    unseen_model_data_path = '../data/damp_unseen_model_artist_tracks_300.pkl'
-    unseen_eval_data_path = '../data/damp_unseen_eval_artist_tracks_300.pkl'
+    train_data_path = '../data/train_artist_track_1000.pkl'
+    valid_data_path = '../data/valid_artist_track_1000.pkl'
+    unseen_model_data_path = '../data/unseen_model_artist_tracks_300.pkl'
+    unseen_eval_data_path = '../data/unseen_eval_artist_tracks_300.pkl'
     
     print ("processing train data")
     process_damp_data(train_data_path)
