@@ -1,5 +1,6 @@
 import os 
 data_dir = '/home1/irteam/users/kylee/dev/mono2mixed-singer/data' # base data dir 
+damp_perf_csv = os.path.join(data_dir, 'perfs.csv') 
 vocal_mel_dir = os.path.join(data_dir, 'damp_mel') # path to original DAMP data melspectrogram
 vocal_audio_dir = os.path.join(data_dir, 'damp_audio') # path to original DAMP audio files 
 mix_mel_dir = os.path.join(data_dir, 'damp_mashup_mix_snr_mel_v2') # path to DAMP mashup data melspectrogram

@@ -8,6 +8,7 @@ import random
 import numpy as np
 import scipy
 import pickle
+import csv
 from pathlib import Path
 from multiprocessing import Pool
 
@@ -39,6 +40,12 @@ MAJ_MIN_RELATIVES = {'B': 'G#',
                      'F#': 'D#', 
                      'C#': 'A#'}
 MIN_MAJ_RELATIVES = {v:k for k,v in MAJ_MIN_RELATIVES.items()}
+DAMP_perf_to_key = {} 
+with open('damp_tempo.csv', 'r') as csvfile : 
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        DAMP_perf_to_key[row['perf_key']] = row['tempo']
+vocal_track_id = Path(vocal_path).stem
 
 
 def vocal_detection(y, input_frame_len, input_hop_len):
@@ -175,6 +182,9 @@ def find_mashup_pairs(vocal_path, bg_dir, duration=3.0, num_segments=10):
     vocal_y, _ = librosa.load(str(vocal_path), sr=AUDIO_PARAMS['sr'])
     # tempo, beat detection
     vocal_tempo_beat = compute_beat(vocal_y)
+    # use the tempo obtained from the spotify api, since tempo calculation based on acapella track is bad  
+    vocal_track_id = Path(str(vocal_path)).stem 
+    vocal_tempo_beat['tempo'] = float(DAMP_perf_to_key[vocal_track_id])
     print ('Vocal track tempo:', vocal_tempo_beat['tempo'])
     # print (vocal_tempo_beat['beat'])
 
@@ -355,7 +365,7 @@ def process_damp_data(artist_tracks_file):
                 print (start_sample, bg_track, bg_start_sample)
                 mixed_output = mash(vocal_track_path, start_sample, bg_track, bg_start_sample, 3.0)
                 start_frame = librosa.samples_to_frames(start_sample, hop_length =damp_config.hop_length, n_fft=damp_config.n_fft)
-                # librosa.output.write_wav(os.path.join('damp_mashup_output', Path(vocal_path).stem + '_' + str(start_frame) +'.wav'), mixed_output, sr=AUDIO_PARAMS['sr'])
+                librosa.output.write_wav(os.path.join(config.mix_audio_dir, Path(vocal_path).stem + '_' + str(start_frame) +'.wav'), mixed_output, sr=AUDIO_PARAMS['sr'])
 
 
 
