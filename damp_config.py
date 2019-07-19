@@ -1,5 +1,6 @@
 import os 
-data_dir = '/home1/irteam/users/kylee/dev/mono2mixed-singer/data' # base data dir 
+# data_dir = '/home1/irteam/users/kylee/dev/mono2mixed-singer/data' # base data dir 
+data_dir = '/mnt/nfs/analysis/interns/klee/mono2mixed_data' # base data dir 
 damp_perf_csv = os.path.join(data_dir, 'perfs.csv') 
 vocal_mel_dir = os.path.join(data_dir, 'damp_mel') # path to original DAMP data melspectrogram
 vocal_audio_dir = os.path.join(data_dir, 'damp_audio') # path to original DAMP audio files 
@@ -17,6 +18,7 @@ n_fft=1024
 hop_length=512
 n_mels=128
 input_frame_len=129
+input_second=2.98
 
 mix_total_mean = 0.22986141
 mix_total_std = 0.27396998
