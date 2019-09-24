@@ -2,10 +2,10 @@ import os
 import sys
 import numpy as np
 import tensorflow as tf 
-import keras.backend as K
-from keras.layers import Conv1D, MaxPool1D, BatchNormalization, GlobalAvgPool1D, Dense, Dropout, Activation, Reshape, Input, Concatenate, dot, Add, Flatten, concatenate, LeakyReLU, Lambda, merge
-from keras.models import Model
-from keras.regularizers import l2
+import tensorflow.keras.backend as K
+from tensorflow.keras.layers import Conv1D, MaxPool1D, BatchNormalization, GlobalAvgPool1D, Dense, Dropout, Activation, Reshape, Input, Concatenate, dot, Add, Flatten, concatenate, LeakyReLU, Lambda 
+from tensorflow.keras.models import Model
+from tensorflow.keras.regularizers import l2
 
 sys.path.append('../')
 import damp_config as config

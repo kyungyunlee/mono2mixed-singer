@@ -72,7 +72,7 @@ def pick_start_svd(svds):
 
 
 
-def get_dataset(input_csv,  train_type, input_frame_len, n_mels, batch_size, normalize=False, shuffle=True, infinite_generator=True, num_parallel_calls=10, cache_dir='/mnt/nfs/analysis/interns/klee/tf_cache/trash'):
+def get_dataset(input_csv,  model_type, input_frame_len, n_mels, batch_size, normalize=False, shuffle=True, infinite_generator=True, num_parallel_calls=10, cache_dir='/mnt/nfs/analysis/interns/klee/tf_cache/trash'):
     
     MEL_FILTER = librosa_mel_filter(AUDIO_PARAMS)
     MEL_FILTER = tf.convert_to_tensor(MEL_FILTER, dtype=tf.float32)
@@ -80,13 +80,13 @@ def get_dataset(input_csv,  train_type, input_frame_len, n_mels, batch_size, nor
     df = pd.read_csv(input_csv)
     n_data = len(df)
 
-    if train_type == 'mono2mono': 
+    if model_type == 'mono': 
         anchor_path = config.vocal_audio_dir
         other_path = config.vocal_audio_dir
-    elif train_type == 'mix2mix': 
+    elif model_type == 'mix': 
         anchor_path = config.mix_audio_dir
         other_path = config.mix_audio_dir
-    elif train_type == 'mono2mix': 
+    elif model_type == 'cross': 
         anchor_path = config.vocal_audio_dir
         other_path = config.mix_audio_dir
  
@@ -96,8 +96,6 @@ def get_dataset(input_csv,  train_type, input_frame_len, n_mels, batch_size, nor
 
     dataset = dataset.take(30)
     
-    # select start svd 
-    dataset = dataset.map(lambda sample: dict(sample, seg_start=pick_start_svd(sample["svds"]))) 
     
     '''
     # test the dataset
@@ -121,10 +119,16 @@ def get_dataset(input_csv,  train_type, input_frame_len, n_mels, batch_size, nor
 
 
     if shuffle:
-        dataset = dataset.shuffle(buffer_size=n_data, seed=0, reshuffle_each_iteration=True)
+        dataset = dataset.shuffle(buffer_size=n_data,reshuffle_each_iteration=True)
 
-    dataset_positive = dataset.shuffle(buffer_size=n_data, seed=0, reshuffle_each_iteration=True)
-    dataset_negative = dataset.shuffle(buffer_size=n_data, seed=0, reshuffle_each_iteration=True)
+    dataset_positive = dataset.shuffle(buffer_size=n_data, reshuffle_each_iteration=True)
+    dataset_negative = dataset.shuffle(buffer_size=n_data, reshuffle_each_iteration=True)
+
+
+    # select start svd 
+    dataset = dataset.map(lambda sample: dict(sample, seg_start=pick_start_svd(sample["svds"]))) 
+    dataset_positive = dataset_positive.map(lambda sample: dict(sample, seg_start=pick_start_svd(sample["svds"]))) 
+    dataset_negative = dataset_negative.map(lambda sample: dict(sample, seg_start=pick_start_svd(sample["svds"]))) 
 
    
     dataset = dataset.interleave(
@@ -149,24 +153,24 @@ def get_dataset(input_csv,  train_type, input_frame_len, n_mels, batch_size, nor
     dataset = dataset.map(lambda sample: dict(sample, anchor_features=tf.expand_dims(sample["anchor_features"], axis=0)))
     
     ### POS #### 
-    dataset = dataset.map(lambda sample: dict(sample, pos_features=librosa_stft(sample["pos"]["perf_key"] + '.m4a', anchor_path, sample["pos"]["seg_start"], AUDIO_PARAMS))) 
+    dataset = dataset.map(lambda sample: dict(sample, pos_features=librosa_stft(sample["pos"]["perf_key"] + '.m4a', other_path, sample["pos"]["seg_start"], AUDIO_PARAMS))) 
     dataset = dataset.map(lambda sample: dict(sample, pos_features=tf.matmul(MEL_FILTER, sample["pos_features"])))
     dataset = dataset.map(lambda sample: dict(sample, pos_features=tf.expand_dims(sample["pos_features"], axis=0)))
     
     #### NEG ### 
-    dataset = dataset.map(lambda sample: dict(sample, neg1_features=librosa_stft(sample["neg1"]["perf_key"] + '.m4a', anchor_path, sample["neg1"]["seg_start"], AUDIO_PARAMS))) 
+    dataset = dataset.map(lambda sample: dict(sample, neg1_features=librosa_stft(sample["neg1"]["perf_key"] + '.m4a', other_path, sample["neg1"]["seg_start"], AUDIO_PARAMS))) 
     dataset = dataset.map(lambda sample: dict(sample, neg1_features=tf.matmul(MEL_FILTER, sample["neg1_features"])))
     dataset = dataset.map(lambda sample: dict(sample, neg1_features=tf.expand_dims(sample["neg1_features"], axis=0)))
 
-    dataset = dataset.map(lambda sample: dict(sample, neg2_features=librosa_stft(sample["neg2"]["perf_key"] + '.m4a', anchor_path, sample["neg2"]["seg_start"], AUDIO_PARAMS))) 
+    dataset = dataset.map(lambda sample: dict(sample, neg2_features=librosa_stft(sample["neg2"]["perf_key"] + '.m4a', other_path, sample["neg2"]["seg_start"], AUDIO_PARAMS))) 
     dataset = dataset.map(lambda sample: dict(sample, neg2_features=tf.matmul(MEL_FILTER, sample["neg2_features"])))
     dataset = dataset.map(lambda sample: dict(sample, neg2_features=tf.expand_dims(sample["neg2_features"], axis=0)))
 
-    dataset = dataset.map(lambda sample: dict(sample, neg3_features=librosa_stft(sample["neg3"]["perf_key"] + '.m4a', anchor_path, sample["neg3"]["seg_start"], AUDIO_PARAMS))) 
+    dataset = dataset.map(lambda sample: dict(sample, neg3_features=librosa_stft(sample["neg3"]["perf_key"] + '.m4a', other_path, sample["neg3"]["seg_start"], AUDIO_PARAMS))) 
     dataset = dataset.map(lambda sample: dict(sample, neg3_features=tf.matmul(MEL_FILTER, sample["neg3_features"])))
     dataset = dataset.map(lambda sample: dict(sample, neg3_features=tf.expand_dims(sample["neg3_features"], axis=0)))
 
-    dataset = dataset.map(lambda sample: dict(sample, neg4_features=librosa_stft(sample["neg4"]["perf_key"] + '.m4a', anchor_path, sample["neg4"]["seg_start"], AUDIO_PARAMS))) 
+    dataset = dataset.map(lambda sample: dict(sample, neg4_features=librosa_stft(sample["neg4"]["perf_key"] + '.m4a', other_path, sample["neg4"]["seg_start"], AUDIO_PARAMS))) 
     dataset = dataset.map(lambda sample: dict(sample, neg4_features=tf.matmul(MEL_FILTER, sample["neg4_features"])))
     dataset = dataset.map(lambda sample: dict(sample, neg4_features=tf.expand_dims(sample["neg4_features"], axis=0)))
 
@@ -181,12 +185,24 @@ def get_dataset(input_csv,  train_type, input_frame_len, n_mels, batch_size, nor
         dataset = dataset.repeat(count=-1)
 
     dataset = dataset.map(
+            lambda sample: [sample["anchor_features"], 
+                            sample["pos_features"],
+                            sample["neg1_features"],
+                            sample["neg2_features"],
+                            sample["neg3_features"],
+                            sample["neg4_features"]
+                            ])
+
+    '''
             lambda sample: ({"anchor": sample["anchor_features"],
+                            "anchor_plyrid": sample["anchor"]["plyrid"],
+                            "anchor_start" : sample["anchor"]["seg_start"],
                             "pos": sample["pos_features"],
                             "neg1": sample["neg1_features"],
                             "neg2": sample["neg2_features"],
                             "neg3": sample["neg3_features"],
                             "neg4": sample["neg4_features"]}))
+    '''
     dataset = dataset.batch(batch_size, drop_remainder=True)
     dataset = dataset.prefetch(batch_size)
     return dataset,n_data 
@@ -198,7 +214,7 @@ def get_dataset(input_csv,  train_type, input_frame_len, n_mels, batch_size, nor
              
 
 if __name__ == '__main__': 
-    dataset, n_data = get_dataset(os.path.join(config.data_dir, 'damp_train_train.csv'), 'mono2mix', 129,128,8)
+    dataset, n_data = get_dataset(os.path.join(config.data_dir, 'damp_train_train.csv'), 'mono', 129,128,8)
     print (n_data)
     # , list(range(30)), 'mono2mix', 129, 128, 8) 
 
@@ -208,9 +224,11 @@ if __name__ == '__main__':
 
 
     with tf.Session() as sess:
-        for i in range(100):
+        for i in range(1000):
             sample_value = sess.run(sample)
-            print(sample_value["anchor"].shape)
+            print (len(sample_value))
+            print (sample_value[0].shape)
+
 
 
 

@@ -5,11 +5,13 @@ import os
 import sys
 import numpy as np
 import tensorflow as tf
-from keras import backend as K
-import keras 
+from tensorflow import keras
+from tensorflow.keras import backend as K
 import argparse 
 import model
-import dataloader
+# import dataloader
+from data_pipeline import get_dataset
+
 sys.path.append('../')
 import damp_config as config
 
@@ -25,14 +27,43 @@ print("pretrained model path", args.pretrained_model)
 
 
 
+def get_train_dataset():
+    dataset, n_data = get_dataset(
+            os.path.join(config.data_dir, 'damp_train_train.csv'), 
+            model_type=args.model_type, 
+            input_frame_len=config.input_frame_len, 
+            n_mels=config.n_mels, 
+            batch_size=config.batch_size,
+            shuffle=True,
+            infinite_generator=True,
+            num_parallel_calls=32,
+            # cache_dir='/mnt/nfs/analysis/interns/klee/tf_cache/%s_train'%args.model_type)
+            cache_dir='/mnt/nfs/analysis/interns/klee/tf_cache/trash')
+    
+    return dataset, n_data 
+
+
+def get_valid_dataset():
+    dataset, n_data = get_dataset(
+            os.path.join(config.data_dir, 'damp_train_valid.csv'), 
+            model_type=args.model_type, 
+            input_frame_len=config.input_frame_len, 
+            n_mels=config.n_mels, 
+            batch_size=config.batch_size,
+            shuffle=False,
+            infinite_generator=True,
+            num_parallel_calls=32,
+            cache_dir='/mnt/nfs/analysis/interns/klee/tf_cache/%s_valid'%args.model_type)
+    
+    return dataset, n_data 
+
+
+
 def train():
     # load data 
-    train_artists = np.load(os.path.join(config.data_dir, 'artist_1000.npy'))
-    x_train, y_train, train_artist_tracks_segments = dataloader.load_siamese_data(os.path.join(config.data_dir, 'train_artist_track_1000.pkl'), train_artists, 1000)
-    x_valid, y_valid, valid_artist_tracks_segments = dataloader.load_siamese_data(os.path.join(config.data_dir, 'valid_artist_track_1000.pkl'), train_artists, 1000)
-
-    print (x_train[0], y_train[0])
-    print (len(x_train), len(y_train))
+    train_data, n_train = get_train_dataset()
+    valid_data, n_valid = get_valid_dataset()
+    print (n_train,n_valid)
 
     # initialize  model 
     if args.model_type in ['mono', 'mix']:
@@ -67,6 +98,7 @@ def train():
     if not os.path.exists(os.path.dirname(weight_name)):
         os.makedirs(os.path.dirname(weight_name))
 
+
     checkpoint = keras.callbacks.ModelCheckpoint(
                     monitor='val_loss',
                     filepath=weight_name,
@@ -88,47 +120,18 @@ def train():
     callbacks = [checkpoint, earlystopping, reduce_lr]
    
 
-    if args.model_type == 'mono':
-            mel_dir = config.vocal_mel_dir
-            feat_mean = config.vocal_total_mean
-            feat_std = config.vocal_total_std
+    train_steps = int(n_train / config.batch_size) * 5
+    valid_steps = int(n_valid / config.batch_size) * 5
 
-            train_generator = dataloader.FrameDataGenerator(x_train, y_train, 'mono', mel_dir, train_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=True)
-            valid_generator = dataloader.FrameDataGenerator(x_valid, y_valid, 'mono', mel_dir, valid_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=False)
-
-    elif args.model_type  == 'mix':
-            mel_dir = config.mix_mel_dir
-            feat_mean = config.mix_total_mean
-            feat_std = config.mix_total_std
-
-            train_generator = dataloader.FrameDataGenerator(x_train, y_train, 'mix', mel_dir, train_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=True)
-            valid_generator = dataloader.FrameDataGenerator(x_valid, y_valid, 'mix', mel_dir, valid_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=False)
-
-    elif args.model_type == 'cross':
-        mel_dir = [config.vocal_mel_dir, config.mix_mel_dir]
-        feat_mean = [config.vocal_total_mean, config.mix_total_mean]
-        feat_std = [config.vocal_total_std, config.mix_total_std]
-
-        train_generator = dataloader.FrameDataGenerator_cross(x_train, y_train, mel_dir, train_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=True)
-        valid_generator = dataloader.FrameDataGenerator_cross(x_valid, y_valid, mel_dir, valid_artist_tracks_segments, feat_mean, feat_std, config.num_singers, config.batch_size, config.input_frame_len, config.num_neg_artist, config.num_pos_tracks, shuffle=False)
-
-    
-    train_steps = int(len(x_train) / config.batch_size)
-    valid_steps = int(len(x_valid) / config.batch_size)
-
-    del x_train, y_train, x_valid, y_valid
-
-    mymodel.fit_generator(
-            generator=train_generator,
+    print (train_steps, valid_steps)
+    mymodel.fit(
+            train_data,
             steps_per_epoch=train_steps,
-            max_queue_size=10,
             shuffle=False,
-            workers=config.num_parallel,
-            use_multiprocessing=True,
             epochs=config.num_epochs,
             verbose=1,
             callbacks=callbacks,
-            validation_data=valid_generator,
+            validation_data=valid_data,
             validation_steps=valid_steps)
 
  
