@@ -3,9 +3,8 @@ import sys
 import numpy as np
 from random import shuffle
 import tensorflow as tf 
-import keras
-from keras import backend as K
-from keras.models import load_model, Model
+from tensorflow.keras import backend as K
+from tensorflow.keras.models import load_model, Model
 from sklearn.metrics.pairwise import cosine_similarity
 import argparse
 # print (K.tensorflow_backend._get_available_gpus())
@@ -20,7 +19,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_path', type=str)
 args = parser.parse_args()
-
 
 
 def build_singer_model(model, train_list, feat_mean, feat_std, mel_dir, num_singers, forBuildingModel):

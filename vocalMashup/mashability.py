@@ -9,8 +9,13 @@ import numpy as np
 import scipy
 import pickle
 import csv
+import math
 from pathlib import Path
 from multiprocessing import Pool
+import soundfile
+
+sys.path.append('../')
+import damp_config as config
 
 NUM_PARALLEL = 20
 
@@ -45,11 +50,10 @@ with open('damp_tempo.csv', 'r') as csvfile :
     reader = csv.DictReader(csvfile)
     for row in reader:
         DAMP_perf_to_key[row['perf_key']] = row['tempo']
-vocal_track_id = Path(vocal_path).stem
 
 
 def vocal_detection(y, input_frame_len, input_hop_len):
-    rmse = librosa.feature.rmse(y, frame_length=AUDIO_PARAMS['frame_length'], hop_length=AUDIO_PARAMS['hop_length'], center=True)
+    rmse = librosa.feature.rms(y, frame_length=AUDIO_PARAMS['frame_length'], hop_length=AUDIO_PARAMS['hop_length'], center=True)
     rmse = rmse[0]
 
     threshold = 0.04
@@ -154,10 +158,12 @@ def compute_loudness(y):
     Return : 
         mean_rms : (float) 
     '''
-    rms = librosa.feature.rmse(y=y, frame_length=AUDIO_PARAMS['frame_length'])
-    rms_filter_ind = np.where(rms >= 0.04)
+    rms = librosa.feature.rms(y=y, frame_length=AUDIO_PARAMS['frame_length'])
+    rms_filter_ind = np.where(rms >= 0.02)
     rms_filter = rms[rms_filter_ind]
     mean_rms = np.mean(rms_filter)
+    if math.isnan(mean_rms):
+        return 0.0 
     return mean_rms
 
 
@@ -197,13 +203,11 @@ def find_mashup_pairs(vocal_path, bg_dir, duration=3.0, num_segments=10):
     # load bg info 
     if os.path.exists('bg_info.pkl'):
         bg_info = pickle.load(open('bg_info.pkl', 'rb'))
-        
     else : 
         print ('bg_info.pkl does not exist, Computing info...')
         precompute_bg_info(bg_dir)
         print ('Done. Run the script again')
         sys.exit()
-
 
     # find bg track with same (or similar tempo)
     list_of_bg = [bg_track for bg_track in Path(bg_dir).glob('*.wav')]
@@ -365,7 +369,9 @@ def process_damp_data(artist_tracks_file):
                 print (start_sample, bg_track, bg_start_sample)
                 mixed_output = mash(vocal_track_path, start_sample, bg_track, bg_start_sample, 3.0)
                 start_frame = librosa.samples_to_frames(start_sample, hop_length =damp_config.hop_length, n_fft=damp_config.n_fft)
-                librosa.output.write_wav(os.path.join(config.mix_audio_dir, Path(vocal_path).stem + '_' + str(start_frame) +'.wav'), mixed_output, sr=AUDIO_PARAMS['sr'])
+                # librosa.output.write_wav(os.path.join(config.mix_audio_dir, Path(vocal_path).stem + '_' + str(start_frame) +'.wav'), mixed_output, sr=AUDIO_PARAMS['sr'])
+                print(track_id, start_sample/44100, start_frame)
+                soundfile.write(os.path.join(config.mix_audio_dir, track_id + '_' + str(start_frame) + '.wav'), mixed_output, AUDIO_PARAMS['sr'], format='WAV')
 
 
 

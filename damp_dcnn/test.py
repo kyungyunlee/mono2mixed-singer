@@ -3,10 +3,10 @@ import sys
 import numpy as np
 from random import shuffle
 import tensorflow as tf 
-import keras
-from keras import backend as K
-from keras import metrics
-from keras.models import load_model, Model
+import tensorflow.keras as keras
+from tensorflow.keras import backend as K
+from tensorflow.keras import metrics
+from tensorflow.keras.models import load_model, Model
 from sklearn.metrics.pairwise import cosine_similarity
 import argparse
 # print (K.tensorflow_backend._get_available_gpus())

@@ -3,11 +3,19 @@ import sys
 import librosa 
 import numpy as np
 from multiprocessing import Pool
+import argparse
+
+import damp_config as config 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--dataset', type=str, required=True, choices=['msd', 'damp_mix', 'damp_vocal'])
+args = parser.parse_args()
+print(args)
 
 N_WORKERS = 5 
 
-def parallel_mel(track, save_dir, audio_dir):
-
+def parallel_mel(track, audio_dir, save_dir, ext):
+    
     audiofile = os.path.join(audio_dir, track)
     savefile = os.path.join(save_dir, track.replace(ext, '.npy'))
     
@@ -19,7 +27,7 @@ def parallel_mel(track, save_dir, audio_dir):
         return 
 
     y, _ = librosa.load(audiofile, sr=config.sr)
-    S = librosa.core.stft(y, n_fft=config.n_fft, hop_length=config.hop)
+    S = librosa.core.stft(y, n_fft=config.n_fft, hop_length=config.hop_length)
     X = np.abs(S)
     mel_basis = librosa.filters.mel(sr=config.sr, n_fft=config.n_fft, n_mels=config.n_mels)
     mel_S = np.dot(mel_basis, X)
@@ -44,13 +52,13 @@ def process_msd_singer():
 
     all_tracks = [] 
     for track in x_train:
-        all_tracks.append((track[1].replace('.npy', ext),save_dir, audio_dir))
+        all_tracks.append((track[1].replace('.npy', ext), audio_dir, save_dir, ext))
 
     for track in x_valid:
-        all_tracks.append((track[1].replace('.npy', ext), save_dir, audio_dir))
+        all_tracks.append((track[1].replace('.npy', ext), audio_dir, save_dir, ext))
 
     for track in x_test:
-        all_tracks.append((track[1].replace('.npy', ext), save_dir, audio_dir))
+        all_tracks.append((track[1].replace('.npy', ext), audio_dir, save_dir, ext))
 
     print (len(all_tracks))
 
@@ -68,10 +76,10 @@ def process_msd_singer():
     
     all_tracks = [] 
     for track in x_train:
-        all_tracks.append(track[1].replace('.npy', ext))
+        all_tracks.append(track[1].replace('.npy', ext), audio_dir, save_dir, ext)
 
     for track in x_test:
-        all_tracks.append(track[1].replace('.npy', ext))
+        all_tracks.append(track[1].replace('.npy', ext), audio_dir, save_dir, ext)
 
     all_tracks = [(all_tracks[i]) for i in range(len(all_tracks))]
 
@@ -104,17 +112,17 @@ def process_damp(audio_dir, mel_dir, ext):
 
     unseen_train_artists = np.load(os.path.join(damp_config.data_dir, 'unseen_artist_300_2.npy'))
     unseen_train_list, _ = load_data_segment(os.path.join(damp_config.data_dir, 'unseen_model_artist_track_300_2.pkl'), unseen_train_artists)
-    unsene_valid_list, _ = load_data_segment(os.path.join(damp_config.data_dir, 'unseen_eval_artist_track_300_2.pkl'), unseen_train_artists)
-
+    unseen_valid_list, _ = load_data_segment(os.path.join(damp_config.data_dir, 'unseen_eval_artist_track_300_2.pkl'), unseen_train_artists)
+    
     all_tracks = set()
     for i in range(len(train_list)):
         _, feat_path, _ = train_list[i]
         feat_path = feat_path.replace('.npy', ext)
-        all_tracks.add((feat_path, mel_dir, audio_dir))
+        all_tracks.add((feat_path, audio_dir, mel_dir, ext))
     for i in range(len(valid_list)):
         _, feat_path, _ = valid_list[i]
         feat_path = feat_path.replace('.npy',ext)
-        all_tracks.add((feat_path, mel_dir, audio_dir))
+        all_tracks.add((feat_path, audio_dir, mel_dir, ext))
 
     all_tracks = list(all_tracks)
     print (len(all_tracks))
@@ -126,16 +134,15 @@ def process_damp(audio_dir, mel_dir, ext):
         p.starmap(parallel_mel, all_tracks)
     
 
-
     all_tracks = set()
     for i in range(len(unseen_train_list)):
         _, feat_path, _ = unseen_train_list[i]
         feat_path =feat_path.replace('.npy', ext)
-        all_tracks.add((feat_path, mel_dir, audio_dir))
+        all_tracks.add((feat_path, audio_dir, mel_dir, ext))
     for i in range(len(unseen_valid_list)):
         _, feat_path, _ = unseen_valid_list[i]
         feat_path = feat_path.replace('.npy', ext)
-        all_tracks.add((feat_path, mel_dir, audio_dir))
+        all_tracks.add((feat_path, audio_dir, mel_dir, ext))
 
     all_tracks = list(all_tracks)
     print (len(all_tracks))
@@ -146,14 +153,19 @@ def process_damp(audio_dir, mel_dir, ext):
 
 def process_damp_mix():
     import damp_config
-    process_damp(damp_config.mix_mel_dir, damp_config.mix_audio_dir, '.wav')
+    process_damp(damp_config.mix_audio_dir, damp_config.mix_mel_dir, '.wav')
 
 def process_damp_vocal():
     import damp_config
-    process_damp(damp_config.vocal_mel_dir, damp_config.vocal_audio_dir, '.m4a')
+    process_damp(damp_config.vocal_audio_dir, damp_config.vocal_mel_dir, '.m4a')
 
 
 if __name__ == '__main__' : 
-    process_msd_singer()
-    # process_damp_mix()
-    # process_damp_vocal()
+    if args.dataset == 'msd' : 
+        process_msd_singer()
+    elif args.dataset == 'damp_mix':
+        process_damp_mix()
+    elif args.dataset == 'damp_vocal' : 
+        process_damp_vocal()
+    else : 
+        print("Error: Wrong dataset name. Check argument")

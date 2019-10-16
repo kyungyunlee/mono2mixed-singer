@@ -1,11 +1,11 @@
 import os 
 import numpy as np
 import tensorflow as tf
-import keras.backend as K
-from keras.layers import Conv1D, MaxPool1D, BatchNormalization, GlobalAvgPool1D, Dense, Dropout, Activation, Reshape, Input, Concatenate, dot, Add, Multiply, Flatten, concatenate, LeakyReLU, Lambda, Merge, UpSampling1D
-from keras.models import Model
-from keras.regularizers import l2
-from keras.initializers import glorot_uniform
+import tensorflow.keras.backend as K
+from tensorflow.keras.layers import Conv1D, MaxPool1D, BatchNormalization, GlobalAvgPool1D, Dense, Dropout, Activation, Reshape, Input, Concatenate, dot, Add, Multiply, Flatten, concatenate, LeakyReLU, Lambda, Merge, UpSampling1D
+from tensorflow.keras.models import Model
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.initializers import glorot_uniform
 
 
 def basic_cnn(num_frame, num_artist):

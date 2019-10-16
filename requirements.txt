@@ -10,7 +10,6 @@ h5py==2.9.0
 html5lib==0.9999999
 joblib==0.13.1
 jsonschema==2.6.0
-kapre==0.1.4
 Keras==2.0.8
 kiwisolver==1.0.1
 librosa==0.6.2
@@ -21,7 +20,6 @@ musdb==0.2.3
 museval==0.2.0
 numba==0.42.0
 numpy==1.16.1
-pandas==0.24.1
 pescador==2.0.1
 protobuf==3.6.1
 pyaml==18.11.0

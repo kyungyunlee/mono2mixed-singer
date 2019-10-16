@@ -5,8 +5,8 @@ import os
 import sys
 import numpy as np
 import tensorflow as tf
-from keras import backend as K
-import keras 
+from tensorflow.keras import backend as K
+import tensorflow.keras as keras 
 import argparse 
 import model
 import dataloader

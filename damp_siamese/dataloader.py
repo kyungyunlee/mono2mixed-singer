@@ -5,7 +5,7 @@ import numpy as np
 import random
 import librosa
 import tensorflow as tf 
-import keras
+import tensorflow.keras as keras
 import threading
 import argparse
 import pickle
@@ -190,8 +190,6 @@ class FrameDataGenerator_cross(keras.utils.Sequence):
         
         if shuffle:
             self.on_epoch_end()
-
-        
 
 
     def __len__(self):

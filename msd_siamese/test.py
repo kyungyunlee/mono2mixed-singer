@@ -4,12 +4,12 @@ import numpy as np
 from random import shuffle
 
 import tensorflow as tf 
-import keras
-from keras import backend as K
-from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, CSVLogger, Callback
-from keras.optimizers import SGD, Adam
-from keras import metrics
-from keras.models import load_model, Model
+import tensorflow.keras as keras
+from tensorflow.keras import backend as K
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, CSVLogger, Callback
+from tensorflow.keras.optimizers import SGD, Adam
+from tensorflow.keras import metrics
+from tensorflow.keras.models import load_model, Model
 from sklearn.metrics.pairwise import cosine_similarity,euclidean_distances
 from operator import itemgetter 
 import csv
@@ -27,9 +27,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model_path', type=str,required=True)
 parser.add_argument('--pretrained', action='store_true')
 args = parser.parse_args()
-
-
-keras.losses.hinge_loss = model.hinge_loss
 
 
 def build_singer_model(model, train_list, feat_mean, feat_std, mel_path, num_singers, forBuildingModel):
@@ -108,7 +105,7 @@ def test_unseen():
     train_list , test_list = np.load(os.path.join(config.data_dir, 'gen_dcnn_unseen_data_500_d.npy'))
     print (len(train_list), len(test_list))
 
-    mymodel = load_model(args.model_path)
+    mymodel = load_model(args.model_path, custom_objects={'hinge_loss' : model.hinge_loss})
 
     artist_embeddings, artist_track_answer = build_singer_model(mymodel, train_list, config.total_mean, config.total_std, config.mel_dir, 500, forBuildingModel=True)
     track_embeddings, track_answer = build_singer_model(mymodel, test_list, config.total_mean,config.total_std, config.mel_dir, 500, forBuildingModel=False)

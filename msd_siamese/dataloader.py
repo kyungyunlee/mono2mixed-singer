@@ -6,7 +6,7 @@ import random
 import librosa
 import csv 
 import tensorflow as tf 
-import keras
+import tensorflow.keras as keras
 import argparse
 import ast 
 import pickle

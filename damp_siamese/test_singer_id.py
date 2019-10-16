@@ -2,10 +2,10 @@ import os
 import sys
 import numpy as np
 import tensorflow as tf 
-from keras import backend as K
-from keras import metrics
-from keras.models import load_model, Model
-import keras.losses
+from tensorflow.keras import backend as K
+from tensorflow.keras import metrics
+from tensorflow.keras.models import load_model, Model
+import tensorflow.keras.losses
 from sklearn.metrics.pairwise import cosine_similarity 
 from collections import OrderedDict
 import argparse 
@@ -15,7 +15,6 @@ import dataloader
 import test_utils
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-keras.losses.hinge_loss = model.hinge_loss
 
 # args 
 parser = argparse.ArgumentParser()
@@ -35,7 +34,7 @@ def test(model_path, model_type, pretrained, scenario):
     train_list, test_list = test_utils.load_test_data()
     
     # load model and correct layers 
-    mymodel = load_model(model_path)
+    mymodel = load_model(model_path, custom_objects={'hinge_loss' : model.hinge_loss})
     if model_type in ['mono', 'mix']:
         if pretrained:
             layer_output = mymodel.get_layer('model_1').get_output_at(0)

@@ -3,11 +3,11 @@ import sys
 import numpy as np
 from random import shuffle
 import tensorflow as tf 
-from keras import backend as K
-from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, CSVLogger, Callback
-from keras.optimizers import SGD, Adam
-from keras import metrics
-from keras.models import load_model, Model
+from tensorflow.keras import backend as K
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, CSVLogger, Callback
+from tensorflow.keras.optimizers import SGD, Adam
+from tensorflow.keras import metrics
+from tensorflow.keras.models import load_model, Model
 import argparse
 # print (K.tensorflow_backend._get_available_gpus())
 

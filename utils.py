@@ -1,9 +1,11 @@
+import sys
 import librosa 
 import numpy as np
 import pickle
-from keras import backend as K
+from tensorflow.keras import backend as K
 
-import config
+sys.path.append('../')
+import damp_config as config 
 
 
 def load_data_segment(picklefile, artist_list):

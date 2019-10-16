@@ -1,13 +1,10 @@
 import os 
 import numpy as np
 import tensorflow as tf
-import keras.backend as K
-from keras.layers import Conv1D, MaxPool1D, BatchNormalization, GlobalAvgPool1D, Dense, Dropout, Activation, Reshape, Input, Concatenate, dot, Add, Multiply, Flatten, concatenate, LeakyReLU, Lambda, Merge
-from keras.models import Model
-from keras.regularizers import l2
-
-
-
+import tensorflow.keras.backend as K
+from tensorflow.keras.layers import Conv1D, MaxPool1D, BatchNormalization, GlobalAvgPool1D, Dense, Dropout, Activation, Reshape, Input, Concatenate, dot, Add, Multiply, Flatten, concatenate, LeakyReLU, Lambda, Merge
+from tensorflow.keras.models import Model
+from tensorflow.keras.regularizers import l2
 
 
 def basic_cnn(num_frame, num_artist):
@@ -43,15 +40,11 @@ def basic_cnn(num_frame, num_artist):
     out = LeakyReLU(0.2)(out)
     out = Dropout(0.5)(out)
 
-    
     out = GlobalAvgPool1D()(out)
-
 
     out = Dense(num_artist, activation='softmax')(out)
     model = Model(inputs=x_input, outputs = out)
     return model
-
-
 
 if __name__ == '__main__':
     model = basic_2d_cnn(129, 1000)

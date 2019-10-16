@@ -3,7 +3,14 @@ Since tempo estimation on vocal-only track is very difficult, I queried Spotify 
 
 
 ### How to use 
-1. Make sure the directory to MUSDB instrumental tracks directory and to DAMP audio directory under `../damp_config.py` is correctly set. 
+1. Mix only the instrumental tracks of MUSDB dataset 
+```
+python musdb_inst.py
+```
+Make sure the directory to MUSDB instrumental tracks directory and to DAMP audio directory under `../damp_config.py` is correctly set. 
+```
+bg_audio_dir = '' 
+```
 2. Run the following
 ```
 python mashability.py 
