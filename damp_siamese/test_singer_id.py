@@ -14,8 +14,6 @@ import model
 import dataloader 
 import test_utils
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
 # args 
 parser = argparse.ArgumentParser()
 parser.add_argument('--scenario', type=str, choices=['mono2mono', 'mix2mix', 'mono2mix'], required=True)
@@ -32,6 +30,7 @@ print ("pretrained:", args.pretrained)
 def test(model_path, model_type, pretrained, scenario):
     # load test data 
     train_list, test_list = test_utils.load_test_data()
+    print ("test data loaded")
     
     # load model and correct layers 
     mymodel = load_model(model_path, custom_objects={'hinge_loss' : model.hinge_loss})
@@ -66,6 +65,7 @@ def test(model_path, model_type, pretrained, scenario):
     ###################### inference #########################################
    
     ####  mem efficient #### 
+    print ("Computing embeddings...")
     artist_to_tracks_model = dict.fromkeys(range(0, 300), None)
     for i in range(len(train_list)):
         artist_id, feat_path, start_frame = train_list[i]

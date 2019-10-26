@@ -7,11 +7,6 @@ import argparse
 
 import damp_config as config 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=str, required=True, choices=['msd', 'damp_mix', 'damp_vocal'])
-args = parser.parse_args()
-print(args)
-
 N_WORKERS = 5 
 
 def parallel_mel(track, audio_dir, save_dir, ext):
@@ -20,13 +15,17 @@ def parallel_mel(track, audio_dir, save_dir, ext):
     savefile = os.path.join(save_dir, track.replace(ext, '.npy'))
     
     if not os.path.exists(os.path.dirname(savefile)):
-        os.makedirs(os.path.dirname(savefile))
+        os.makedirs(os.path.dirname(savefile), exist_ok=True)
 
     if os.path.exists(savefile):
         print (savefile, ":already exists")
         return 
-
-    y, _ = librosa.load(audiofile, sr=config.sr)
+    
+    try : 
+        y, _ = librosa.load(audiofile, sr=config.sr)
+    except : 
+        print (savefile, ":unable to load")
+        return 
     S = librosa.core.stft(y, n_fft=config.n_fft, hop_length=config.hop_length)
     X = np.abs(S)
     mel_basis = librosa.filters.mel(sr=config.sr, n_fft=config.n_fft, n_mels=config.n_mels)
@@ -161,6 +160,13 @@ def process_damp_vocal():
 
 
 if __name__ == '__main__' : 
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', type=str, required=True, choices=['msd', 'damp_mix', 'damp_vocal'])
+    args = parser.parse_args()
+    print(args)
+
+
     if args.dataset == 'msd' : 
         process_msd_singer()
     elif args.dataset == 'damp_mix':
