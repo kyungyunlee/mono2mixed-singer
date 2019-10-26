@@ -2,18 +2,27 @@
 
 **Code is being updated**   
 Supplementary material for "Learning a Joint Embedding Space of Monophonic and Mixed Music Signals for Singing Voice" - Kyungyun Lee, Juhan Nam, ISMIR 2019 Delft, Netherlands   
-[paper](https://arxiv.org/abs/1906.11139)  
+[paper](http://archives.ismir.net/ismir2019/paper/000034.pdf)  
 [blog coming soon]()
 
 I tried to provide as much code and data configuration as possible to make the paper reproduction easier. Everything is provided except the actual mashup audio files (examples in blog), and you can run the files under `mashup` to create data.  
 
 
 ### Requirements
+Build a container using the dockerfile in `Dockerfile` directory.   
+If you want to train your own system, make sure you download the public datasets (DAMP, musdb18, Million Song Dataset) and set the path in the config files (`msd_config.py` and `damp_config.py`).   
+
+### To just use the trained networks
+This uses the CROSS model to extract feature embeddings for singing voice. 
 ```
-conda env create -f conda-keras-env.yml
-pip install -r requirements.txt
+'''
+args
+    model_path : path to trained model weights
+    audio_path : path to directory containing audio files
+    domain : either "mono" or "mixed", depending on the type of the audio files
+'''
+python embeddings.py --model_path damp_siamese/models/cross_pretrained.h5 --audio_path examples_dir --domain mixed
 ```
-Make sure you download the public datasets (DAMP, musdb18, Million Song Dataset) and set the path in the config files (`msd_config.py` and `damp_config.py`).  
 
 ### Dataset
 **MSD-singer**   
@@ -30,6 +39,7 @@ Code is in `feature_extract.py`. Run this file to extract features.
 
 ### Training and testing
 Different versions (random subsets) of datasets can be made using `damp_datamaker.py` and `msd_datamaker.py`.   
+Check different subdirectories for instructions. 
 
 **DAMP**   
 For MONO, MIX and CROSS models in the paper, main code is in `damp_siamese` and pre-training model code is in `damp_dcnn`.   
