@@ -49,7 +49,7 @@ def extract_embeddings(model_path, audio_path, domain):
 
     # process audio files in the audio_path directory 
     list_of_audiofiles = [f for f in Path(audio_path).glob('*')]
-    list_of_audiofiles = list_of_audiofiles[:3]
+    print ("Number of audiofiles to process :", len(list_of_audiofiles))
     list_of_data = [] 
     ext = '.' + str(list_of_audiofiles[0]).split('.')[-1]
     mel_path = Path(audio_path).stem + '_mel' 
