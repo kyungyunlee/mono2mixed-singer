@@ -1,0 +1,13 @@
+#Download base image tensorflow 1.14
+FROM tensorflow/tensorflow:1.14.0-gpu-py3
+
+RUN apt-get update 
+RUN pip install --upgrade pip 
+RUN pip install pysoundfile
+RUN apt-get install -y libsndfile1
+RUN pip install librosa==0.6.3
+
+RUN pip install musdb==0.3.1 
+
+
+
