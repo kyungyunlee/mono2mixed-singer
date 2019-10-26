@@ -5,7 +5,7 @@ Supplementary material for "Learning a Joint Embedding Space of Monophonic and M
 [paper](http://archives.ismir.net/ismir2019/paper/000034.pdf)  
 [blog coming soon]()
 
-I tried to provide as much code and data configuration as possible to make the paper reproduction easier. Everything is provided except the actual mashup audio files (examples in blog), and you can run the files under `mashup` to create data.  
+I tried to provide as much code and data configuration as possible to make the paper reproduction easier. Everything is provided except the actual mashup audio files (examples in blog), and you can run the files under `vocalMashup` to create data.  
 
 
 ### Requirements
