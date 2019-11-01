@@ -3,7 +3,7 @@
 **Code is being updated**   
 Supplementary material for "Learning a Joint Embedding Space of Monophonic and Mixed Music Signals for Singing Voice" - Kyungyun Lee, Juhan Nam, ISMIR 2019 Delft, Netherlands   
 [paper](http://archives.ismir.net/ismir2019/paper/000034.pdf)  
-[blog coming soon]()
+[audio examples](http://kyungyunlee.github.io/archives/ISMIR2019-Mono2Mixed)
 
 I tried to provide as much code and data configuration as possible to make the paper reproduction easier. Everything is provided except the actual mashup audio files (examples in blog), and you can run the files under `vocalMashup` to create data.  
 
@@ -30,7 +30,7 @@ This is created from the [Million Song Dataset](http://millionsongdataset.com/) 
 MSD-singer repo is [here](https://github.com/kyungyunlee/MSD-singer).   
 
 **DAMP and DAMP-Mash**    
-Download [DAMP]() and [musdb18](). Create your own mashup. Code is under `vocalMashup` directory.  
+Download [DAMP](http://ccrma.stanford.edu/damp/) and [musdb18](http://sigsep.github.io/datasets/musdb.html). Create your own mashup. Code is under `vocalMashup` directory.  
 
 ### Preprocessing audio features  
 Input to the model is a 3-sec melspectrogram. I recommend precomputing the melspectrogram of all the audio data to speed up the training process if enough disk space is available (34G for DAMP mashup, 119G for MSD-Singer)     
