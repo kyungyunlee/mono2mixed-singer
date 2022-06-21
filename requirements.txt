@@ -19,7 +19,7 @@ matplotlib==3.0.2
 musdb==0.2.3
 museval==0.2.0
 numba==0.42.0
-numpy==1.16.1
+numpy==1.22.0
 pescador==2.0.1
 protobuf==3.6.1
 pyaml==18.11.0
