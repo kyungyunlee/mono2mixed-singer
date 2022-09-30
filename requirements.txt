@@ -8,7 +8,7 @@ enum34==1.1.6
 future==0.17.1
 h5py==2.9.0
 html5lib==0.9999999
-joblib==0.13.1
+joblib==1.2.0
 jsonschema==2.6.0
 Keras==2.0.8
 kiwisolver==1.0.1
