@@ -1,6 +1,6 @@
 audioread==2.1.6
 bleach==3.3.0
-certifi==2018.8.24
+certifi==2022.12.7
 cffi==1.12.1
 cycler==0.10.0
 decorator==4.3.2
